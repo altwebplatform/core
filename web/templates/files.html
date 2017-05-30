@@ -1,0 +1,27 @@
+{{ define "files" }}
+
+{{template "header" .}}
+
+<!-- Main jumbotron for a primary marketing message or call to action -->
+<div class="jumbotron">
+    <div class="container">
+        <h1>Files</h1>
+        <p>Object store for binary files of any type.  Offers an S3-compatible API and command line.</p>
+        <p><a class="btn btn-primary btn-lg" href="#" role="button">Create&raquo;</a></p>
+    </div>
+</div>
+
+<div class="container">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Bucket</th>
+                <th>Objects</th>
+            </tr>
+        </thead>
+    </table>
+</div>
+
+{{template "footer" .}}
+
+{{ end }}

@@ -1,0 +1,7 @@
+/bin
+/pkg
+
+.pid
+.DS_Store
+.idea
+cockroach-data

@@ -1,0 +1,21 @@
+
+.project {
+    font-size: 20px;
+}
+
+.home {
+    height: 50px;
+    border-bottom: 1px solid white;
+}
+
+.help {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    margin-bottom: 20px;
+}
+
+.graph {
+    height: 400px;
+    width: 400px;
+}
