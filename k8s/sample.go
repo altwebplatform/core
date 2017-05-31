@@ -11,6 +11,7 @@ import (
 	// _ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/pkg/api/v1"
 	"strings"
+	"log"
 )
 
 //docker run --rm -p 9000:9000 -e MINIO_ACCESS_KEY -e MINIO_SECRET_KEY minio/minio server /export &
@@ -21,12 +22,12 @@ func main() {
 	// uses the current context in kubeconfig
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal(err.Error())
 	}
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		panic(err.Error())
+		log.Fatal(err.Error())
 	}
 	namespace, err := clientset.Namespaces().Get(NAMESPACE)
 	if (err != nil && strings.Contains(err.Error(), "not found")) || namespace == nil {
@@ -34,13 +35,13 @@ func main() {
 			ObjectMeta: v1.ObjectMeta{Name: NAMESPACE},
 		})
 		if err != nil {
-			panic(err.Error())
+			log.Fatal(err.Error())
 		}
 	}
 	for {
 		pods, err := clientset.CoreV1().Pods("").List(v1.ListOptions{})
 		if err != nil {
-			panic(err.Error())
+			log.Fatal(err.Error())
 		}
 		fmt.Printf("There are %d pods in the cluster\n", len(pods.Items))
 		time.Sleep(10 * time.Second)

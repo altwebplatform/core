@@ -1,22 +1,8 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"time"
 )
-
-func SetupDB(addr string) *gorm.DB {
-	db, err := gorm.Open("postgres", addr)
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	// Migrate the schema
-	db.AutoMigrate(&Service{}, &Plugin{})
-
-	return db
-}
 
 type Service struct {
 	ID        uint64    `db:"id"`
@@ -24,3 +10,13 @@ type Service struct {
 	Type      string    `db:"type"`
 	CreatedAt time.Time `db:"created_at"`
 }
+
+//db.Create(&models.Service{
+//Name:      "test22",
+//CreatedAt: time.Now(),
+//})
+//
+//var service models.Service
+//db.Find(&service)
+//
+//fmt.Println(service.Name)

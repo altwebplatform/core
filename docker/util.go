@@ -9,13 +9,13 @@ package docker
 //func DockerBuild() {
 //	client, err := docker.NewEnvClient()
 //	if err != nil {
-//		panic(err)
+//		log.Fatal(err)
 //	}
 //
 //	ctx := context.Background()
 //
 //	_, err = client.ImageBuild(ctx, nil, types.ImageBuildOptions{})
 //	if err != nil {
-//		panic(err)
+//		log.Fatal(err)
 //	}
 //}
