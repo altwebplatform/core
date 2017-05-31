@@ -1,11 +1,12 @@
 package awp
 
-import "github.com/altwebplatform/core/web"
+import (
+	"github.com/altwebplatform/core/web"
+	"flag"
+	"github.com/altwebplatform/core/db"
+)
 
 func Start() {
-	//db := models.SetupDB("postgresql://root@localhost:26257/altwebplatform?sslmode=disable")
-	//defer db.Close()
-
-	web.Start(":8080")
-
+	db.Init(*flag.String("db", "postgresql://root@localhost:26257/altwebplatform?sslmode=disable", "a string"))
+	web.Start(*flag.String("listen", ":8080", "a string"))
 }

@@ -1,4 +1,4 @@
-package models
+package db
 
 import (
 	"github.com/jinzhu/gorm"
@@ -6,12 +6,12 @@ import (
 	"log"
 )
 
-var globalDB *gorm.DB
+var sharedDB *gorm.DB
 
-func SetupDB(addr string) {
+func Init(addr string) {
 	globalDB, err := gorm.Open("postgres", addr)
 	if err != nil {
-		log.Fatal("failed to connect database")
+		log.Fatal("failed to connect database on: " + addr, err)
 	}
 
 	// Migrate the schema

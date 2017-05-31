@@ -1,4 +1,4 @@
-package models
+package db
 
 import (
 	"time"
@@ -11,12 +11,12 @@ type Service struct {
 	CreatedAt time.Time `db:"created_at"`
 }
 
-//db.Create(&models.Service{
+//db.Create(&db.Service{
 //Name:      "test22",
 //CreatedAt: time.Now(),
 //})
 //
-//var service models.Service
+//var service db.Service
 //db.Find(&service)
 //
 //fmt.Println(service.Name)

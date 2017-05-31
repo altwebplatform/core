@@ -17,7 +17,7 @@ Save your access credentials locally:
 
 Start CockroachDB: 
 
-`cockroach start --insecure --background`
+`cockroach start --http-port 9080 --insecure --background`
 `cockroach sql -d "root@localhost:26257" -e "CREATE DATABASE altwebplatform"`
 
 Start AWP: 

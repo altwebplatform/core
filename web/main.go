@@ -26,8 +26,5 @@ func Start(connect string) {
 	http.Handle("/js/", staticServer)
 	http.Handle("/vendor/", staticServer)
 	http.HandleFunc("/", renderTemplate)
-	err := http.ListenAndServe(connect, nil)
-	if err != nil {
-		log.Fatal("Error starting AWP web dashboard: ", err)
-	}
+	log.Fatal(http.ListenAndServe(connect, nil))
 }
