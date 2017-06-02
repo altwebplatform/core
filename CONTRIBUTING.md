@@ -6,14 +6,18 @@
 
 `minikube start`
 
-Save your access credentials locally: 
+Save your access credentials locally (in the altwebplatform/core directory):
 
 `kubectl config view > .kubeconfig`
 
 [Install CockroachDB](https://www.cockroachlabs.com/docs/install-cockroachdb.html) and run it: 
 
 `cockroach start --http-port 9080 --insecure --background`
-`cockroach sql -d "root@localhost:26257" -e "CREATE DATABASE altwebplatform"`
+`cockroach sql --insecure -d "root@localhost:26257" -e "CREATE DATABASE altwebplatform"`
+
+Install glide:
+
+`brew install glide`
 
 Start AWP: 
 
@@ -22,8 +26,8 @@ Start AWP:
 ### Other Considerations
 
 - To add or update a Go dependency:
-  - Update the glide.yaml with dependency
-  - Run `glide install` to update generated files and add files as part of PR.
+  - `glide get github.com/user/package` will fetch it and add to glide.yaml.  Sometimes running `glide install` will help `glide get` function.
+  - `git add` any new files
   - Create a PR with all the changes.
 
 ## Style Guide
