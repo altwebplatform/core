@@ -2,3 +2,5 @@ package: github.com/altwebplatform/core
 import:
 - package: k8s.io/client-go
   version: v2.0.0
+- package: github.com/jinzhu/gorm
+  version: ^1.0.0

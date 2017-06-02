@@ -1,5 +1,5 @@
-hash: cd25228c9e77b6b3580ffde24781ff166f099d1165e6fad06087efeb8fd2e394
-updated: 2017-05-27T14:47:21.189372237-04:00
+hash: 52bd529f6584d860a9754f52f87c2617bb817b2d35e4e44d4135ddf21dfe19b4
+updated: 2017-06-01T21:12:46.788848379-04:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -48,8 +48,6 @@ imports:
   version: 6aced65f8501fe1217321abf0749d354824ba2ff
 - name: github.com/go-openapi/swag
   version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
-- name: github.com/go-sql-driver/mysql
-  version: 382e13d099fcf5f5994290892ab258fbebbdc5e3
 - name: github.com/gogo/protobuf
   version: e18d7aa8f8c624c915db340349aad4c49b10d173
   subpackages:
@@ -67,10 +65,23 @@ imports:
   version: 3ca23474a7c7203e0a0a070fd33508f6efdb9b3d
 - name: github.com/imdario/mergo
   version: 6633656539c1639d9d78127b7d47c622b5d7b6dc
+- name: github.com/jinzhu/gorm
+  version: 5174cc5c242a728b435ea2be8a2f7f998e15429b
+  subpackages:
+  - dialects/postgres
+- name: github.com/jinzhu/inflection
+  version: 1c35d901db3da928c72a72d8458480cc9ade058f
 - name: github.com/jonboulle/clockwork
   version: 72f9bd7c4e0c2a40055ab3d0f09654f730cce982
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
+- name: github.com/julienschmidt/httprouter
+  version: 975b5c4c7c21c0e3d2764200bf2aa8e34657ae6e
+- name: github.com/lib/pq
+  version: 91f10e40ba0dd2d0bf9f93ec1d4077711a78df88
+  subpackages:
+  - hstore
+  - oid
 - name: github.com/mailru/easyjson
   version: d5b7844b561a7bc640052f1b935f7b800330d7e0
   subpackages:
@@ -144,29 +155,6 @@ imports:
   version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
   version: 53feefa2559fb8dfa8d81baad31be332c97d6c77
-- name: k8s.io/apimachinery
-  version: 2de00c78cb6d6127fb51b9531c1b3def1cbcac8c
-  subpackages:
-  - pkg/api/resource
-  - pkg/apis/meta/v1
-  - pkg/conversion
-  - pkg/conversion/queryparams
-  - pkg/fields
-  - pkg/labels
-  - pkg/openapi
-  - pkg/runtime
-  - pkg/runtime/schema
-  - pkg/selection
-  - pkg/types
-  - pkg/util/errors
-  - pkg/util/intstr
-  - pkg/util/net
-  - pkg/util/runtime
-  - pkg/util/sets
-  - pkg/util/validation
-  - pkg/util/wait
-  - pkg/watch
-  - third_party/forked/golang/reflect
 - name: k8s.io/client-go
   version: e121606b0d09b2e1c467183ee46217fa85a6b672
   subpackages:
