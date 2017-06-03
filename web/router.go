@@ -7,6 +7,7 @@ import (
 	"log"
 	"github.com/altwebplatform/core/storage"
 	"fmt"
+	"encoding/json"
 )
 
 var templates = template.Must(template.ParseGlob("web/templates/*"))
@@ -28,18 +29,23 @@ func notFound(w http.ResponseWriter, req *http.Request) {
 
 func listServices(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
 	db := storage.SharedDB()
-	var service storage.Service
 
-	model := db.Model(&service)
+	model := db.Model(&storage.Service{})
 	rows, err := model.Limit(10).Rows()
 	if err != nil {
 
 	}
 	defer rows.Close()
+	resp := []storage.Service{}
 	for rows.Next() {
+		var service storage.Service
 		db.ScanRows(rows, &service)
-		fmt.Println(service)
+		resp = append(resp, service)
+		fmt.Println("SERVICE", service)
 	}
+	b, err := json.Marshal(map[string][]storage.Service{"services": resp})
+	w.Write(b)
+	w.WriteHeader(http.StatusOK)
 }
 
 func CreateRouter() *httprouter.Router {

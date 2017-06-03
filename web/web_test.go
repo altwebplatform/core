@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"strconv"
 	"net/http"
+	"encoding/json"
 )
 
 func EnsureSuccess(t *testing.T, rr *httptest.ResponseRecorder) *httptest.ResponseRecorder {
@@ -50,5 +51,8 @@ func TestServicesAPI(t *testing.T) {
 
 	rr = request(t, "GET", uri, nil, nil)
 	EnsureSuccess(t, rr)
-	ensure.DeepEqual(t, 1, 2)
+	var result map[string]interface{}
+	fmt.Println(rr.Body.String())
+	err := json.Unmarshal(rr.Body.Bytes(), &result)
+	ensure.Nil(t, err)
 }
