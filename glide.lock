@@ -1,5 +1,5 @@
-hash: 52bd529f6584d860a9754f52f87c2617bb817b2d35e4e44d4135ddf21dfe19b4
-updated: 2017-06-01T21:12:46.788848379-04:00
+hash: 74f407e41dd1194961e67bb0aa5d1d765351fae970a9079686b6c48e3ff37074
+updated: 2017-06-02T17:14:52.990634728-04:00
 imports:
 - name: cloud.google.com/go
   version: 3b1ae45394a234c385be014e9a488f2bb6eef821
@@ -36,6 +36,8 @@ imports:
   subpackages:
   - log
   - swagger
+- name: github.com/facebookgo/ensure
+  version: b4ab57deab51ee655ae4bd85281f0715a068016d
 - name: github.com/fsnotify/fsnotify
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/ghodss/yaml
@@ -268,4 +270,8 @@ imports:
   - tools/clientcmd/api/v1
   - tools/metrics
   - transport
-testImports: []
+testImports:
+- name: github.com/facebookgo/stack
+  version: 751773369052141c013c6e827a71e8f35c07879c
+- name: github.com/facebookgo/subset
+  version: 8dac2c3c48703541e481feddf22975953d4ff842

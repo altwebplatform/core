@@ -1,14 +1,16 @@
-package db
+package storage
 
 import (
 	"time"
+	"github.com/jinzhu/gorm"
 )
 
 type Service struct {
-	ID        uint64    `db:"id"`
-	Name      string    `db:"name"`
-	Type      string    `db:"type"`
-	CreatedAt time.Time `db:"created_at"`
+	gorm.Model
+	ID        uint64    `gorm:"AUTO_INCREMENT"`
+	Name      string
+	Type      string
+	CreatedAt time.Time
 }
 
 //db.Create(&db.Service{
@@ -20,3 +22,4 @@ type Service struct {
 //db.Find(&service)
 //
 //fmt.Println(service.Name)
+
