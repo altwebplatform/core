@@ -6,7 +6,6 @@ import (
 	"html/template"
 	"log"
 	"github.com/altwebplatform/core/storage"
-	"fmt"
 	"encoding/json"
 )
 
@@ -28,24 +27,30 @@ func notFound(w http.ResponseWriter, req *http.Request) {
 }
 
 func listServices(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-	db := storage.SharedDB()
+	listModel(&storage.Service{}, "services", w)
+}
 
-	model := db.Model(&storage.Service{})
+func listModel(obj interface{}, key string, w http.ResponseWriter) {
+	db := storage.SharedDB()
+	model := db.Model(obj)
 	rows, err := model.Limit(10).Rows()
 	if err != nil {
-
+		errorResponse(w, err)
 	}
 	defer rows.Close()
-	resp := []storage.Service{}
+	var resp []interface{}
 	for rows.Next() {
-		var service storage.Service
-		db.ScanRows(rows, &service)
-		resp = append(resp, service)
-		fmt.Println("SERVICE", service)
+		db.ScanRows(rows, &obj)
+		resp = append(resp, obj)
 	}
-	b, err := json.Marshal(map[string][]storage.Service{"services": resp})
+	b, err := json.Marshal(map[string][]interface{}{key: resp})
 	w.Write(b)
 	w.WriteHeader(http.StatusOK)
+}
+
+func errorResponse(writer http.ResponseWriter, err error) {
+	writer.Write([]byte(err.Error()))
+	writer.WriteHeader(http.StatusInternalServerError)
 }
 
 func CreateRouter() *httprouter.Router {

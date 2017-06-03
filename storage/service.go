@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"time"
 	"github.com/jinzhu/gorm"
 )
 
@@ -10,7 +9,6 @@ type Service struct {
 	ID        uint64    `gorm:"AUTO_INCREMENT"`
 	Name      string
 	Type      string
-	CreatedAt time.Time
 }
 
 //db.Create(&db.Service{
