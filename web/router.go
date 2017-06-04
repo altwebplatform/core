@@ -7,6 +7,7 @@ import (
 	"log"
 	"github.com/altwebplatform/core/storage"
 	"encoding/json"
+	"io/ioutil"
 )
 
 var templates = template.Must(template.ParseGlob("web/templates/*"))
@@ -26,16 +27,13 @@ func notFound(w http.ResponseWriter, req *http.Request) {
 	log.Println("WEB - Not found: " + req.URL.Path)
 }
 
-func listServices(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-	listModel(&storage.Service{}, "services", w)
-}
-
 func listModel(obj interface{}, key string, w http.ResponseWriter) {
 	db := storage.SharedDB()
 	model := db.Model(obj)
 	rows, err := model.Limit(10).Rows()
 	if err != nil {
 		errorResponse(w, err)
+		return
 	}
 	defer rows.Close()
 	var resp []interface{}
@@ -43,14 +41,42 @@ func listModel(obj interface{}, key string, w http.ResponseWriter) {
 		db.ScanRows(rows, &obj)
 		resp = append(resp, obj)
 	}
-	b, err := json.Marshal(map[string][]interface{}{key: resp})
-	w.Write(b)
+	if err := json.NewEncoder(w).Encode(map[string][]interface{}{key: resp}); err != nil {
+		errorResponse(w, err)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
-func errorResponse(writer http.ResponseWriter, err error) {
-	writer.Write([]byte(err.Error()))
-	writer.WriteHeader(http.StatusInternalServerError)
+func createModel(obj interface{}, w http.ResponseWriter, req *http.Request) {
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+	if err := json.Unmarshal(body, obj); err != nil {
+		errorResponse(w, err)
+		return
+	}
+	db := storage.SharedDB()
+	model := db.Model(obj)
+	if err := model.Create(obj).Error; err != nil {
+		errorResponse(w, err)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(map[string]string{"success": "true"}); err != nil {
+		errorResponse(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func errorResponse(w http.ResponseWriter, err error) {
+	response := map[string]string{"success": "false", "message": err.Error()}
+	if encodeErr := json.NewEncoder(w).Encode(response); encodeErr != nil {
+		w.Write([]byte(err.Error()))
+	}
+	w.WriteHeader(http.StatusInternalServerError)
 }
 
 func CreateRouter() *httprouter.Router {
@@ -58,7 +84,13 @@ func CreateRouter() *httprouter.Router {
 	router.GET("/", renderTemplate)
 	router.GET("/dashboard/:template", renderTemplate)
 
-	router.GET("/api/v1/service/list", listServices)
+	router.GET("/api/v1/service/list", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		listModel(&storage.Service{}, "services", w)
+	})
+
+	router.PUT("/api/v1/service", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		createModel(&storage.Service{}, w, req)
+	})
 
 	router.Handler("GET", "/static/*filepath",
 		http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))

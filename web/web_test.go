@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"net/http"
 	"encoding/json"
+	"log"
+	"github.com/altwebplatform/core/storage"
 )
 
 func EnsureSuccess(t *testing.T, rr *httptest.ResponseRecorder) *httptest.ResponseRecorder {
@@ -47,12 +49,30 @@ func request(t *testing.T, method string, url string, body []byte, headers map[s
 
 func TestServicesAPI(t *testing.T) {
 	var rr *httptest.ResponseRecorder
-	uri := "/api/v1/service/list"
 
-	rr = request(t, "GET", uri, nil, nil)
+	rr = request(t, "PUT", "/api/v1/service", MustMarshall(storage.Service{Name: "inserted"}), nil)
+	EnsureSuccess(t, rr)
+
+	rr = request(t, "GET", "/api/v1/service/list", nil, nil)
 	EnsureSuccess(t, rr)
 	var result map[string]interface{}
 	fmt.Println(rr.Body.String())
 	err := json.Unmarshal(rr.Body.Bytes(), &result)
 	ensure.Nil(t, err)
+}
+
+func MustMarshall(obj interface{}) []byte {
+	b, err := json.Marshal(obj)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return b
+}
+
+func MustUnmarshall(obj interface{}, data []byte) interface{} {
+	err := json.Unmarshal(data, obj)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return obj
 }
