@@ -15,6 +15,10 @@ Save your access credentials locally (in the altwebplatform/core directory):
 `cockroach start --http-port 9080 --insecure --background`
 `cockroach sql --insecure -d "root@localhost:26257" -e "CREATE DATABASE altwebplatform"`
 
+To get a SQL shell if needed later:
+
+`cockroach sql --insecure -d "altwebplatform"`
+
 Install glide:
 
 `brew install glide`
