@@ -1,17 +1,17 @@
 package web
 
 import (
-	"net/http/httptest"
-	"fmt"
-	"github.com/facebookgo/ensure"
-	"testing"
-	"io"
 	"bytes"
-	"strconv"
-	"net/http"
 	"encoding/json"
-	"log"
+	"fmt"
 	"github.com/altwebplatform/core/storage"
+	"github.com/facebookgo/ensure"
+	"io"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"testing"
 )
 
 func EnsureSuccess(t *testing.T, rr *httptest.ResponseRecorder) *httptest.ResponseRecorder {
@@ -57,7 +57,7 @@ func TestServicesAPI(t *testing.T) {
 	MustUnmarshall(&services, rr.Body.Bytes())
 
 	for _, service := range services["services"] {
-		rr = request(t, "DELETE", "/api/v1/services/" + strconv.FormatUint(service.ID, 10), nil, nil)
+		rr = request(t, "DELETE", "/api/v1/services/"+strconv.FormatUint(service.ID, 10), nil, nil)
 		EnsureSuccess(t, rr)
 	}
 
@@ -71,7 +71,7 @@ func TestServicesAPI(t *testing.T) {
 	ensure.DeepEqual(t, services["services"][0].Name, "inserted")
 
 	for _, service := range services["services"] {
-		rr = request(t, "DELETE", "/api/v1/services/" + strconv.FormatUint(service.ID, 10), nil, nil)
+		rr = request(t, "DELETE", "/api/v1/services/"+strconv.FormatUint(service.ID, 10), nil, nil)
 		EnsureSuccess(t, rr)
 	}
 }
@@ -84,7 +84,7 @@ func MustMarshall(obj interface{}) []byte {
 	return b
 }
 
-func MustUnmarshall(obj interface{}, data []byte){
+func MustUnmarshall(obj interface{}, data []byte) {
 	err := json.Unmarshal(data, obj)
 	if err != nil {
 		log.Fatal(err)

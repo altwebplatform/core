@@ -1,13 +1,13 @@
 package web
 
 import (
-	"github.com/julienschmidt/httprouter"
-	"net/http"
-	"html/template"
-	"log"
-	"github.com/altwebplatform/core/storage"
 	"encoding/json"
+	"github.com/altwebplatform/core/storage"
+	"github.com/julienschmidt/httprouter"
+	"html/template"
 	"io/ioutil"
+	"log"
+	"net/http"
 	"strconv"
 )
 
@@ -15,7 +15,7 @@ var templates = template.Must(template.ParseGlob("web/templates/*"))
 
 func renderTemplate(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
 	name := params.ByName("template")
-	if  len(name) == 0 {
+	if len(name) == 0 {
 		name = "main"
 	}
 	err := templates.ExecuteTemplate(w, name, "")
@@ -53,7 +53,7 @@ func listModel(obj interface{}, key string, w http.ResponseWriter) {
 func getModel(obj interface{}, id uint64, w http.ResponseWriter) {
 	db := storage.SharedDB()
 	model := db.Model(obj)
-	db = model.Find(obj,"id = ?", id)
+	db = model.Find(obj, "id = ?", id)
 	if db.Error != nil {
 		errorResponse(w, db.Error)
 		return
@@ -71,7 +71,7 @@ func updateModel(obj interface{}, id uint64, w http.ResponseWriter, req *http.Re
 
 	db := storage.SharedDB()
 	model := db.Model(obj)
-	db = model.Find(obj,"id = ?", id)
+	db = model.Find(obj, "id = ?", id)
 	if db.Error != nil {
 		errorResponse(w, db.Error)
 		return
@@ -136,7 +136,6 @@ func CreateRouter() *httprouter.Router {
 	router.GET("/", renderTemplate)
 	router.GET("/dashboard/:template", renderTemplate)
 
-
 	router.POST("/api/v1/services", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		createModel(&storage.Service{}, w, req)
 	})
@@ -177,4 +176,3 @@ func CreateRouter() *httprouter.Router {
 	router.NotFound = http.HandlerFunc(notFound)
 	return router
 }
-

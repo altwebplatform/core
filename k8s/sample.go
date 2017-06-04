@@ -10,8 +10,8 @@ import (
 	// Uncomment the following line to load the gcp plugin (only required to authenticate against GKE clusters).
 	// _ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"k8s.io/client-go/pkg/api/v1"
-	"strings"
 	"log"
+	"strings"
 )
 
 //docker run --rm -p 9000:9000 -e MINIO_ACCESS_KEY -e MINIO_SECRET_KEY minio/minio server /export &

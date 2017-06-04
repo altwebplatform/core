@@ -1,10 +1,10 @@
 package awp
 
 import (
-	"github.com/altwebplatform/core/web"
 	"flag"
-	"github.com/altwebplatform/core/storage"
 	"github.com/altwebplatform/core/config"
+	"github.com/altwebplatform/core/storage"
+	"github.com/altwebplatform/core/web"
 )
 
 func Start() {
