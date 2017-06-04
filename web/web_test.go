@@ -49,16 +49,31 @@ func request(t *testing.T, method string, url string, body []byte, headers map[s
 
 func TestServicesAPI(t *testing.T) {
 	var rr *httptest.ResponseRecorder
+	var services = make(map[string][]storage.Service)
 
-	rr = request(t, "PUT", "/api/v1/service", MustMarshall(storage.Service{Name: "inserted"}), nil)
+	// first clean up using the API
+	rr = request(t, "GET", "/api/v1/services", nil, nil)
+	EnsureSuccess(t, rr)
+	MustUnmarshall(&services, rr.Body.Bytes())
+
+	for _, service := range services["services"] {
+		rr = request(t, "DELETE", "/api/v1/services/" + strconv.FormatUint(service.ID, 10), nil, nil)
+		EnsureSuccess(t, rr)
+	}
+
+	rr = request(t, "POST", "/api/v1/services", MustMarshall(storage.Service{Name: "inserted"}), nil)
 	EnsureSuccess(t, rr)
 
-	rr = request(t, "GET", "/api/v1/service/list", nil, nil)
+	rr = request(t, "GET", "/api/v1/services", nil, nil)
 	EnsureSuccess(t, rr)
-	var result map[string]interface{}
-	fmt.Println(rr.Body.String())
-	err := json.Unmarshal(rr.Body.Bytes(), &result)
-	ensure.Nil(t, err)
+	MustUnmarshall(&services, rr.Body.Bytes())
+	ensure.True(t, len(services["services"]) == 1)
+	ensure.DeepEqual(t, services["services"][0].Name, "inserted")
+
+	for _, service := range services["services"] {
+		rr = request(t, "DELETE", "/api/v1/services/" + strconv.FormatUint(service.ID, 10), nil, nil)
+		EnsureSuccess(t, rr)
+	}
 }
 
 func MustMarshall(obj interface{}) []byte {
@@ -69,10 +84,9 @@ func MustMarshall(obj interface{}) []byte {
 	return b
 }
 
-func MustUnmarshall(obj interface{}, data []byte) interface{} {
+func MustUnmarshall(obj interface{}, data []byte){
 	err := json.Unmarshal(data, obj)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return obj
 }

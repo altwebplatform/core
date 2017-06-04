@@ -8,6 +8,7 @@ import (
 	"github.com/altwebplatform/core/storage"
 	"encoding/json"
 	"io/ioutil"
+	"strconv"
 )
 
 var templates = template.Must(template.ParseGlob("web/templates/*"))
@@ -25,6 +26,7 @@ func renderTemplate(w http.ResponseWriter, req *http.Request, params httprouter.
 
 func notFound(w http.ResponseWriter, req *http.Request) {
 	log.Println("WEB - Not found: " + req.URL.Path)
+	http.NotFound(w, req)
 }
 
 func listModel(obj interface{}, key string, w http.ResponseWriter) {
@@ -60,7 +62,21 @@ func createModel(obj interface{}, w http.ResponseWriter, req *http.Request) {
 	}
 	db := storage.SharedDB()
 	model := db.Model(obj)
-	if err := model.Create(obj).Error; err != nil {
+	create := model.Create(obj)
+	if err := create.Error; err != nil {
+		errorResponse(w, err)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(map[string]string{"success": "true"}); err != nil {
+		errorResponse(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func deleteModel(obj interface{}, id uint64, w http.ResponseWriter, req *http.Request) {
+	db := storage.SharedDB()
+	if err := db.Where("id = ?", id).Delete(obj).Error; err != nil {
 		errorResponse(w, err)
 		return
 	}
@@ -72,11 +88,14 @@ func createModel(obj interface{}, w http.ResponseWriter, req *http.Request) {
 }
 
 func errorResponse(w http.ResponseWriter, err error) {
-	response := map[string]string{"success": "false", "message": err.Error()}
-	if encodeErr := json.NewEncoder(w).Encode(response); encodeErr != nil {
-		w.Write([]byte(err.Error()))
-	}
 	w.WriteHeader(http.StatusInternalServerError)
+	response := map[string]string{"success": "false", "message": err.Error()}
+	if b, encodeErr := json.Marshal(response); encodeErr != nil {
+		w.Write([]byte(err.Error()))
+	} else {
+		w.Write(b)
+	}
+	w.Header().Add("x-error", err.Error())
 }
 
 func CreateRouter() *httprouter.Router {
@@ -84,12 +103,30 @@ func CreateRouter() *httprouter.Router {
 	router.GET("/", renderTemplate)
 	router.GET("/dashboard/:template", renderTemplate)
 
-	router.GET("/api/v1/service/list", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+
+	router.POST("/api/v1/services", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		createModel(&storage.Service{}, w, req)
+	})
+
+	router.GET("/api/v1/services", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		listModel(&storage.Service{}, "services", w)
 	})
 
-	router.PUT("/api/v1/service", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		createModel(&storage.Service{}, w, req)
+	router.GET("/api/v1/services/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		//get single
+	})
+
+	router.PUT("/api/v1/services/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		//update single
+	})
+
+	router.DELETE("/api/v1/services/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		id, err := strconv.ParseUint(params.ByName("id"), 10, 8)
+		if err != nil {
+			errorResponse(w, err)
+			return
+		}
+		deleteModel(&storage.Service{}, id, w, req)
 	})
 
 	router.Handler("GET", "/static/*filepath",
@@ -97,3 +134,4 @@ func CreateRouter() *httprouter.Router {
 	router.NotFound = http.HandlerFunc(notFound)
 	return router
 }
+
