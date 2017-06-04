@@ -24,7 +24,7 @@ func Init(addr string) {
 	}
 
 	// Migrate the schema
-	sharedDB = sharedDB.AutoMigrate(&Service{}, &Plugin{})
+	sharedDB = sharedDB.AutoMigrate(&Service{}, &Plugin{}).LogMode(true)
 }
 
 func Close() {

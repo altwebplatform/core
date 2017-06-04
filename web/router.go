@@ -9,9 +9,12 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"fmt"
 )
 
 var templates = template.Must(template.ParseGlob("web/templates/*"))
+
+type TypeCreator func() interface{}
 
 func renderTemplate(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
 	name := params.ByName("template")
@@ -29,9 +32,9 @@ func notFound(w http.ResponseWriter, req *http.Request) {
 	http.NotFound(w, req)
 }
 
-func listModel(obj interface{}, key string, w http.ResponseWriter) {
+func listModel(typeCreator TypeCreator, key string, w http.ResponseWriter) {
 	db := storage.SharedDB()
-	model := db.Model(obj)
+	model := db.Model(typeCreator())
 	rows, err := model.Limit(10).Rows()
 	if err != nil {
 		errorResponse(w, err)
@@ -40,6 +43,8 @@ func listModel(obj interface{}, key string, w http.ResponseWriter) {
 	defer rows.Close()
 	var resp []interface{}
 	for rows.Next() {
+		obj := typeCreator()
+		fmt.Println(rows.Columns())
 		db.ScanRows(rows, &obj)
 		resp = append(resp, obj)
 	}
@@ -47,10 +52,16 @@ func listModel(obj interface{}, key string, w http.ResponseWriter) {
 		errorResponse(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
-func getModel(obj interface{}, id uint64, w http.ResponseWriter) {
+func getModel(typeCreator TypeCreator, w http.ResponseWriter, params httprouter.Params) {
+	id, err := strconv.ParseUint(params.ByName("id"), 10, 64)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	obj := typeCreator()
 	db := storage.SharedDB()
 	model := db.Model(obj)
 	db = model.Find(obj, "id = ?", id)
@@ -62,13 +73,19 @@ func getModel(obj interface{}, id uint64, w http.ResponseWriter) {
 		errorResponse(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
-func updateModel(obj interface{}, id uint64, w http.ResponseWriter, req *http.Request) {
+func updateModel(typeCreator TypeCreator, w http.ResponseWriter, req *http.Request, params httprouter.Params) {
 
 	// db.Model(&user).Select("name").Updates(map[string]interface{}{"name": "hello", "age": 18, "actived": false})
 
+	id, err := strconv.ParseUint(params.ByName("id"), 10, 64)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
+	obj := typeCreator()
 	db := storage.SharedDB()
 	model := db.Model(obj)
 	db = model.Find(obj, "id = ?", id)
@@ -80,22 +97,22 @@ func updateModel(obj interface{}, id uint64, w http.ResponseWriter, req *http.Re
 		errorResponse(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
-func createModel(obj interface{}, w http.ResponseWriter, req *http.Request) {
+func createModel(typeCreator TypeCreator, w http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
 		errorResponse(w, err)
 		return
 	}
-	if err := json.Unmarshal(body, obj); err != nil {
+	obj := storage.Service{}
+	if err := json.Unmarshal(body, &obj); err != nil {
 		errorResponse(w, err)
 		return
 	}
 	db := storage.SharedDB()
-	model := db.Model(obj)
-	create := model.Create(obj)
+	model := db.Model(&obj)
+	create := model.Create(&obj)
 	if err := create.Error; err != nil {
 		errorResponse(w, err)
 		return
@@ -107,9 +124,16 @@ func createModel(obj interface{}, w http.ResponseWriter, req *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func deleteModel(obj interface{}, id uint64, w http.ResponseWriter, req *http.Request) {
+func deleteModel(typeCreator TypeCreator, w http.ResponseWriter, params httprouter.Params) {
+	id, err := strconv.ParseUint(params.ByName("id"), 10, 64)
+	if err != nil {
+		errorResponse(w, err)
+		return
+	}
+
 	db := storage.SharedDB()
-	if err := db.Where("id = ?", id).Delete(obj).Error; err != nil {
+	obj := typeCreator()
+	if err := db.Delete(&obj, "id = ?", id).Error; err != nil {
 		errorResponse(w, err)
 		return
 	}
@@ -117,10 +141,10 @@ func deleteModel(obj interface{}, id uint64, w http.ResponseWriter, req *http.Re
 		errorResponse(w, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
 func errorResponse(w http.ResponseWriter, err error) {
+	w.Header().Add("x-error", err.Error())
 	w.WriteHeader(http.StatusInternalServerError)
 	response := map[string]string{"success": "false", "message": err.Error()}
 	if b, encodeErr := json.Marshal(response); encodeErr != nil {
@@ -128,7 +152,24 @@ func errorResponse(w http.ResponseWriter, err error) {
 	} else {
 		w.Write(b)
 	}
-	w.Header().Add("x-error", err.Error())
+}
+
+func handleType(router *httprouter.Router, path string, createType TypeCreator) {
+	router.POST("/api/v1/" + path, func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		createModel(createType, w, req)
+	})
+	router.GET("/api/v1/" + path, func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		listModel(createType, "services", w)
+	})
+	router.GET("/api/v1/" + path + "/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		getModel(createType, w, params)
+	})
+	router.PUT("/api/v1/" + path + "/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		updateModel(createType, w, req, params)
+	})
+	router.DELETE("/api/v1/" + path + "/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
+		deleteModel(createType, w, params)
+	})
 }
 
 func CreateRouter() *httprouter.Router {
@@ -136,40 +177,7 @@ func CreateRouter() *httprouter.Router {
 	router.GET("/", renderTemplate)
 	router.GET("/dashboard/:template", renderTemplate)
 
-	router.POST("/api/v1/services", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		createModel(&storage.Service{}, w, req)
-	})
-
-	router.GET("/api/v1/services", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		listModel(&storage.Service{}, "services", w)
-	})
-
-	router.GET("/api/v1/services/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		id, err := strconv.ParseUint(params.ByName("id"), 10, 8)
-		if err != nil {
-			errorResponse(w, err)
-			return
-		}
-		getModel(&storage.Service{}, id, w)
-	})
-
-	router.PUT("/api/v1/services/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		id, err := strconv.ParseUint(params.ByName("id"), 10, 8)
-		if err != nil {
-			errorResponse(w, err)
-			return
-		}
-		updateModel(&storage.Service{}, id, w, req)
-	})
-
-	router.DELETE("/api/v1/services/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		id, err := strconv.ParseUint(params.ByName("id"), 10, 8)
-		if err != nil {
-			errorResponse(w, err)
-			return
-		}
-		deleteModel(&storage.Service{}, id, w, req)
-	})
+	handleType(router, "services", func() interface{} { return storage.Service{} })
 
 	router.Handler("GET", "/static/*filepath",
 		http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
