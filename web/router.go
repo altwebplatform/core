@@ -50,6 +50,39 @@ func listModel(obj interface{}, key string, w http.ResponseWriter) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func getModel(obj interface{}, id uint64, w http.ResponseWriter) {
+	db := storage.SharedDB()
+	model := db.Model(obj)
+	db = model.Find(obj,"id = ?", id)
+	if db.Error != nil {
+		errorResponse(w, db.Error)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(obj); err != nil {
+		errorResponse(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func updateModel(obj interface{}, id uint64, w http.ResponseWriter, req *http.Request) {
+
+	// db.Model(&user).Select("name").Updates(map[string]interface{}{"name": "hello", "age": 18, "actived": false})
+
+	db := storage.SharedDB()
+	model := db.Model(obj)
+	db = model.Find(obj,"id = ?", id)
+	if db.Error != nil {
+		errorResponse(w, db.Error)
+		return
+	}
+	if err := json.NewEncoder(w).Encode(obj); err != nil {
+		errorResponse(w, err)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func createModel(obj interface{}, w http.ResponseWriter, req *http.Request) {
 	body, err := ioutil.ReadAll(req.Body)
 	if err != nil {
@@ -113,11 +146,21 @@ func CreateRouter() *httprouter.Router {
 	})
 
 	router.GET("/api/v1/services/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		//get single
+		id, err := strconv.ParseUint(params.ByName("id"), 10, 8)
+		if err != nil {
+			errorResponse(w, err)
+			return
+		}
+		getModel(&storage.Service{}, id, w)
 	})
 
 	router.PUT("/api/v1/services/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		//update single
+		id, err := strconv.ParseUint(params.ByName("id"), 10, 8)
+		if err != nil {
+			errorResponse(w, err)
+			return
+		}
+		updateModel(&storage.Service{}, id, w, req)
 	})
 
 	router.DELETE("/api/v1/services/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
