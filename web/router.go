@@ -9,12 +9,14 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"fmt"
+	"database/sql"
+	"github.com/jinzhu/gorm"
 )
 
 var templates = template.Must(template.ParseGlob("web/templates/*"))
 
 type TypeCreator func() interface{}
+type RowMapper func(*gorm.DB, *sql.Rows) interface{}
 
 func renderTemplate(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
 	name := params.ByName("template")
@@ -32,20 +34,28 @@ func notFound(w http.ResponseWriter, req *http.Request) {
 	http.NotFound(w, req)
 }
 
-func listModel(typeCreator TypeCreator, key string, w http.ResponseWriter) {
-	db := storage.SharedDB()
-	model := db.Model(typeCreator())
-	rows, err := model.Limit(10).Rows()
+func listModel(typeCreator TypeCreator, rowMapper RowMapper, key string, w http.ResponseWriter) {
+	db := storage.SharedDB().Model(typeCreator())
+	rows, err := db.Limit(10).Rows()
 	if err != nil {
 		errorResponse(w, err)
 		return
 	}
 	defer rows.Close()
 	var resp []interface{}
+
+	//columns, err := rows.Columns()
+	//if err != nil {
+	//	errorResponse(w, err)
+	//	return
+	//}
+
 	for rows.Next() {
-		obj := typeCreator()
-		fmt.Println(rows.Columns())
-		db.ScanRows(rows, &obj)
+		obj := rowMapper(db, rows)
+		if err != nil {
+			errorResponse(w, err)
+			return
+		}
 		resp = append(resp, obj)
 	}
 	if err := json.NewEncoder(w).Encode(map[string][]interface{}{key: resp}); err != nil {
@@ -125,15 +135,14 @@ func createModel(typeCreator TypeCreator, w http.ResponseWriter, req *http.Reque
 }
 
 func deleteModel(typeCreator TypeCreator, w http.ResponseWriter, params httprouter.Params) {
-	id, err := strconv.ParseUint(params.ByName("id"), 10, 64)
-	if err != nil {
-		errorResponse(w, err)
-		return
-	}
+	//id, err := strconv.ParseUint(params.ByName("id"), 10, 64)
+	//if err != nil {
+	//	errorResponse(w, err)
+	//	return
+	//}
 
 	db := storage.SharedDB()
-	obj := typeCreator()
-	if err := db.Delete(&obj, "id = ?", id).Error; err != nil {
+	if err := db.Delete(typeCreator(), "id = ?", params.ByName("id")).Error; err != nil {
 		errorResponse(w, err)
 		return
 	}
@@ -159,7 +168,12 @@ func handleType(router *httprouter.Router, path string, createType TypeCreator) 
 		createModel(createType, w, req)
 	})
 	router.GET("/api/v1/" + path, func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
-		listModel(createType, "services", w)
+		listModel(createType, func(db *gorm.DB, rows *sql.Rows) interface{} {
+			obj := &storage.Service{}
+			db.ScanRows(rows, &obj)
+			return obj
+		},
+			"services", w)
 	})
 	router.GET("/api/v1/" + path + "/:id", func(w http.ResponseWriter, req *http.Request, params httprouter.Params) {
 		getModel(createType, w, params)

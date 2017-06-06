@@ -74,6 +74,11 @@ func TestServicesAPI(t *testing.T) {
 		rr = request(t, "DELETE", "/api/v1/services/"+strconv.FormatUint(service.ID, 10), nil, nil)
 		EnsureSuccess(t, rr)
 	}
+
+	rr = request(t, "GET", "/api/v1/services", nil, nil)
+	EnsureSuccess(t, rr)
+	MustUnmarshall(&services, rr.Body.Bytes())
+	ensure.True(t, len(services["services"]) == 0)
 }
 
 func MustMarshall(obj interface{}) []byte {

@@ -1,12 +1,7 @@
 package storage
 
-import (
-	"github.com/jinzhu/gorm"
-)
-
 type Service struct {
-	gorm.Model
-	ID   uint64 `gorm:"AUTO_INCREMENT"`
+	ID uint64
 	Name string
 	Type string
 }
