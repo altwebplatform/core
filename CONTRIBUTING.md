@@ -34,10 +34,6 @@ Start AWP:
   - `git add` any new files
   - Create a PR with all the changes.
 
-## Style Guide
-
-[Style Guide](STYLE.md)
-
 ## Code Review Workflow
 
 + All contributors need to sign the [Contributor License Agreement](https://cla-assistant.io/altwebplatform/core).
